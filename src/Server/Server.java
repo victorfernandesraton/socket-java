@@ -9,42 +9,46 @@ import java.util.List;
 
 public class Server {
 
-    private int port;
-    private List<Socket> clientes;
-
-    public Server(int port) {
-        this.port = port;
-        this.clientes = new ArrayList<>();
+    public static void main(String[] args) throws IOException {
+        // inicia o servidor
+        new Server(12345).executa();
     }
 
-    public void executa() throws IOException  {
-        try(ServerSocket Server = new ServerSocket(this.port)){
-            System.out.printf("port %s  aberta!\n", this.port);
+    private int porta;
+    private List<PrintStream> clientes;
 
-            do {
-                Socket cliente = Server.accept();
-                System.out.println("Nova conexão com o cliente " +
-                        cliente.getInetAddress().getHostAddress());
+    public Server (int porta) {
+        this.porta = porta;
+        this.clientes = new ArrayList<PrintStream>();
+    }
 
-                this.clientes.add(cliente);
+    public void executa () throws IOException {
+        ServerSocket servidor = new ServerSocket(this.porta);
+        System.out.println("Porta 12345 aberta!");
 
+        while (true) {
+            // aceita um cliente
+            Socket cliente = servidor.accept();
+            System.out.println("Nova conexão com o cliente " +
+                    cliente.getInetAddress().getHostAddress()
+            );
 
-                MessageHandler tc = new MessageHandler(cliente, this);
-                new Thread(tc).start();
-            } while (true);
+            // adiciona saida do cliente à lista
+            PrintStream ps = new PrintStream(cliente.getOutputStream());
+            this.clientes.add(ps);
+
+            // cria tratador de cliente numa nova thread
+            HandleClient tc =
+                    new HandleClient(cliente.getInputStream(), this);
+            new Thread(tc).start();
         }
+
     }
 
-    public void broadcast(Socket clienteQueEnviou, String msg) {
-        for (Socket cliente : this.clientes) {
-            if(!cliente.equals(clienteQueEnviou)){
-                try {
-                    PrintStream ps = new PrintStream(cliente.getOutputStream());
-                    ps.println(msg);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+    public void broadcast(String msg) {
+        // envia msg para todo mundo
+        for (PrintStream cliente : this.clientes) {
+            cliente.println(msg);
         }
     }
 }
