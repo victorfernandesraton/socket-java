@@ -7,11 +7,6 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 public class Client {
-    public static void main(String[] args)
-            throws UnknownHostException, IOException {
-        // dispara client
-        new Client("127.0.0.1", 12345).execute();
-    }
 
     private String host;
     private int port;
@@ -23,21 +18,21 @@ public class Client {
 
     public void execute() throws UnknownHostException, IOException {
         Socket client = new Socket(this.host, this.port);
-        System.out.println("O client se conectou ao servidor!");
+        System.out.printf("\nO client se conectou ao servidor %s:%d\n", this.host, this.port);
 
-        // thread para receber mensagens do servidor
+        // Recive é responsável por ceber as mensagens em thread individual
         Recive r = new Recive(client.getInputStream());
         new Thread(r).start();
 
         // lê msgs do teclado e manda pro servidor
-        Scanner teclado = new Scanner(System.in);
+        Scanner input = new Scanner(System.in);
         PrintStream saida = new PrintStream(client.getOutputStream());
-        while (teclado.hasNextLine()) {
-            saida.println(teclado.nextLine());
+        while (input.hasNextLine()) {
+            saida.println(input.nextLine());
         }
 
         saida.close();
-        teclado.close();
+        input.close();
         client.close();
     }
 }

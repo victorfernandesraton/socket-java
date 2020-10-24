@@ -5,21 +5,19 @@ import java.util.Scanner;
 
 public class HandleClient implements Runnable {
 
-    private InputStream cliente;
-    private Server servidor;
+    private InputStream client;
+    private Server server;
 
-    public HandleClient(InputStream cliente, Server servidor) {
-        this.cliente = cliente;
-        this.servidor = servidor;
+    public HandleClient(InputStream client, Server server) {
+        this.client = client;
+        this.server = server;
     }
 
     public void run() {
-        // quando chegar uma msg, distribui pra todos
-        Scanner s = new Scanner(this.cliente);
+        Scanner s = new Scanner(this.client);
         while (s.hasNextLine()) {
             String payload = s.nextLine();
-            servidor.broadcast(payload);
-            servidor.broadcast(String.valueOf(payload.length()));
+            server.broadcast(String.format("\nmessage :%s\nsize: %d",payload, payload.length()));
         }
         s.close();
     }
